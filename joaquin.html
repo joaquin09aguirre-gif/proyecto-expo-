@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis 4 juegos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --fondo:#1b1740;
+    --texto:#f4f1ff;
+    --suave:#b9b3e6;
+    --c1:#ff5d73;
+    --c2:#ffc857;
+    --c3:#3ddc97;
+    --c4:#5bb8ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Nunito',system-ui,sans-serif;
+    background:var(--fondo);
+    color:var(--texto);
+    min-height:100vh;
+    padding:48px 20px 64px;
+  }
+  header{max-width:1000px;margin:0 auto 40px}
+  h1{
+    font-family:'Bricolage Grotesque',system-ui,sans-serif;
+    font-weight:800;
+    font-size:clamp(2.2rem,6vw,4rem);
+    line-height:1.05;
+  }
+  header p{color:var(--suave);margin-top:12px;font-size:1.1rem;max-width:52ch}
+
+  .grilla{
+    max-width:1000px;margin:0 auto;
+    display:grid;gap:22px;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  }
+
+  /* ---- Tarjeta ---- */
+  .tarjeta{
+    --color:var(--c1);
+    position:relative;
+    border:0;cursor:pointer;text-align:left;
+    background:var(--color);
+    color:#1b1740;
+    border-radius:22px;
+    padding:26px;
+    min-height:260px;
+    display:flex;flex-direction:column;justify-content:flex-end;
+    overflow:hidden;
+    font:inherit;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+    box-shadow:0 6px 0 rgba(0,0,0,.25);
+  }
+  .tarjeta:nth-child(2){--color:var(--c2)}
+  .tarjeta:nth-child(3){--color:var(--c3)}
+  .tarjeta:nth-child(4){--color:var(--c4)}
+
+  /* círculo que crece desde la esquina al pasar el cursor */
+  .tarjeta::before{
+    content:"";position:absolute;top:-70px;right:-70px;
+    width:150px;height:150px;border-radius:50%;
+    background:rgba(255,255,255,.35);
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .emoji{
+    position:absolute;top:22px;right:24px;
+    font-size:3rem;
+    transition:transform .4s cubic-bezier(.3,1.6,.5,1);
+  }
+  .emoji svg{width:84px;height:84px;display:block}
+  .tarjeta h2{
+    font-family:'Bricolage Grotesque',system-ui,sans-serif;
+    font-size:1.7rem;font-weight:800;line-height:1.1;
+  }
+  .tarjeta .resumen{
+    margin-top:8px;font-weight:700;
+    max-height:0;opacity:0;
+    transition:max-height .4s ease, opacity .3s ease;
+  }
+  .tarjeta .ver{
+    margin-top:14px;font-weight:800;
+    display:inline-block;
+    transition:transform .3s ease;
+  }
+
+  .tarjeta:hover,
+  .tarjeta:focus-visible{
+    transform:translateY(-8px) rotate(-1.5deg);
+    box-shadow:0 16px 0 rgba(0,0,0,.25);
+    outline:none;
+  }
+  .tarjeta:hover::before,
+  .tarjeta:focus-visible::before{transform:scale(7)}
+  .tarjeta:hover .emoji,
+  .tarjeta:focus-visible .emoji{transform:scale(1.3) rotate(12deg)}
+  .tarjeta:hover .resumen,
+  .tarjeta:focus-visible .resumen{max-height:90px;opacity:1}
+  .tarjeta:hover .ver,
+  .tarjeta:focus-visible .ver{transform:translateX(6px)}
+  .tarjeta:active{transform:translateY(-2px) scale(.98)}
+
+  /* ---- Ventana de información ---- */
+  dialog{
+    border:0;border-radius:24px;
+    width:min(760px,94vw);
+    max-height:92vh;
+    background:#2a2560;color:var(--texto);
+    padding:0;
+    overflow:auto;
+  }
+  dialog[open]{animation:abrir .35s cubic-bezier(.2,.9,.3,1.2)}
+  dialog::backdrop{background:rgba(10,8,30,.75);backdrop-filter:blur(4px)}
+  @keyframes abrir{from{opacity:0;transform:scale(.85) translateY(30px)}to{opacity:1;transform:none}}
+
+  .modal-cabecera{padding:28px 28px 8px;display:flex;gap:16px;align-items:flex-start;justify-content:space-between}
+  .modal-cabecera h3{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:2rem;font-weight:800}
+  .modal-icono{width:72px;height:72px;flex:none;font-size:3.2rem;line-height:72px;text-align:center}
+  .modal-icono svg{width:100%;height:100%;display:block}
+  .modal-titulo-caja{display:flex;align-items:center;gap:16px}
+  .cerrar{
+    border:0;background:rgba(255,255,255,.12);color:var(--texto);
+    width:42px;height:42px;border-radius:50%;font-size:1.3rem;cursor:pointer;flex:none;
+    transition:transform .25s ease, background .25s ease;
+  }
+  .cerrar:hover,.cerrar:focus-visible{transform:rotate(90deg);background:rgba(255,255,255,.25);outline:none}
+  .modal-cuerpo{padding:8px 28px 28px}
+  .modal-cuerpo p{color:var(--suave);line-height:1.6;max-width:62ch}
+  .datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+  .dato{background:rgba(255,255,255,.08);border-radius:14px;padding:12px 14px}
+  .dato b{display:block;font-size:.85rem;color:var(--suave);font-weight:700}
+  .dato span{font-weight:800}
+  .visor{
+    aspect-ratio:485/402;width:100%;
+    border:0;border-radius:16px;background:#000;
+  }
+  .sin-juego{
+    padding:40px 20px;text-align:center;border:2px dashed rgba(255,255,255,.25);
+    border-radius:16px;color:var(--suave);
+  }
+  .enlace{
+    display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;
+    background:var(--texto);color:#1b1740;font-weight:800;text-decoration:none;
+    transition:transform .25s ease;
+  }
+  .enlace:hover,.enlace:focus-visible{transform:scale(1.06);outline:none}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Mis 4 juegos</h1>
+  <p>Pasá el cursor por arriba de cada juego y hacé clic para ver la información y jugar.</p>
+</header>
+
+<main class="grilla" id="grilla"></main>
+
+<dialog id="modal" aria-labelledby="modal-titulo">
+  <div class="modal-cabecera">
+    <div class="modal-titulo-caja">
+      <div class="modal-icono" id="modal-icono" aria-hidden="true"></div>
+      <h3 id="modal-titulo"></h3>
+    </div>
+    <button class="cerrar" id="cerrar" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="modal-cuerpo" id="modal-cuerpo"></div>
+</dialog>
+
+<script>
+/* ============================================================
+   EDITÁ ACÁ LOS DATOS DE TUS JUEGOS
+   - scratchId: el número que aparece al final del link de Scratch
+     (si el juego no es de Scratch, dejalo en null y poné "enlace")
+   ============================================================ */
+const GATO_SVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gato de Scratch">
+  <path d="M72 78 C92 78 96 56 88 48" fill="none" stroke="#CF8B17" stroke-width="9" stroke-linecap="round"/>
+  <path d="M72 78 C92 78 96 56 88 48" fill="none" stroke="#FFAB19" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="50" cy="70" rx="22" ry="24" fill="#FFAB19" stroke="#CF8B17" stroke-width="3"/>
+  <ellipse cx="50" cy="76" rx="12" ry="14" fill="#FFD28A"/>
+  <polygon points="26,24 28,4 46,16" fill="#FFAB19" stroke="#CF8B17" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="74,24 72,4 54,16" fill="#FFAB19" stroke="#CF8B17" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="31,19 32,10 40,16" fill="#F29A9A"/>
+  <polygon points="69,19 68,10 60,16" fill="#F29A9A"/>
+  <ellipse cx="50" cy="36" rx="27" ry="23" fill="#FFAB19" stroke="#CF8B17" stroke-width="3"/>
+  <ellipse cx="50" cy="45" rx="14" ry="9" fill="#FFD28A"/>
+  <ellipse cx="39" cy="33" rx="6.5" ry="8.5" fill="#fff" stroke="#CF8B17" stroke-width="1.5"/>
+  <ellipse cx="61" cy="33" rx="6.5" ry="8.5" fill="#fff" stroke="#CF8B17" stroke-width="1.5"/>
+  <circle cx="41" cy="34" r="3.5" fill="#222"/>
+  <circle cx="59" cy="34" r="3.5" fill="#222"/>
+  <ellipse cx="50" cy="42" rx="3" ry="2" fill="#E0607E"/>
+  <path d="M50 44 Q50 49 45 49 M50 44 Q50 49 55 49" fill="none" stroke="#7a4a10" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M30 42 L16 39 M30 46 L16 48 M70 42 L84 39 M70 46 L84 48" stroke="#7a4a10" stroke-width="1.4" stroke-linecap="round"/>
+  <ellipse cx="38" cy="92" rx="9" ry="5" fill="#FFAB19" stroke="#CF8B17" stroke-width="2.5"/>
+  <ellipse cx="62" cy="92" rx="9" ry="5" fill="#FFAB19" stroke="#CF8B17" stroke-width="2.5"/>
+</svg>`;
+
+const CAMION_SVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Camión">
+  <rect x="4" y="26" width="52" height="42" rx="4" fill="#fff" stroke="#1b1740" stroke-width="3"/>
+  <rect x="10" y="34" width="40" height="5" rx="2" fill="#ff5d73"/>
+  <rect x="10" y="45" width="28" height="5" rx="2" fill="#ff5d73"/>
+  <path d="M56 38 H76 L92 54 V68 H56 Z" fill="#5bb8ff" stroke="#1b1740" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M62 43 H74 L84 54 H62 Z" fill="#e8f6ff" stroke="#1b1740" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="86" y="58" width="8" height="5" rx="2" fill="#ffc857" stroke="#1b1740" stroke-width="2"/>
+  <rect x="2" y="66" width="92" height="6" rx="3" fill="#1b1740"/>
+  <circle cx="24" cy="74" r="10" fill="#1b1740"/><circle cx="24" cy="74" r="4" fill="#ccc"/>
+  <circle cx="74" cy="74" r="10" fill="#1b1740"/><circle cx="74" cy="74" r="4" fill="#ccc"/>
+</svg>`;
+
+const juegos = [
+  {
+    titulo: "Juego 1",
+    emoji: "🎮",
+    svg: GATO_SVG,   // gato de Scratch. Para quitarlo borrá esta línea
+    resumen: "Una frase corta que cuente de qué trata.",
+    descripcion: "Acá escribí la descripción completa del juego: la historia, el objetivo y qué lo hace divertido.",
+    genero: "Aventura",
+    controles: "Flechas / Mouse",
+    dificultad: "Media",
+    scratchId: "1397236280"
+  },
+  {
+    titulo: "Juego 2",
+    emoji: "🚀",
+    svg: CAMION_SVG,   // camión. Para quitarlo borrá esta línea
+    resumen: "Una frase corta que cuente de qué trata.",
+    descripcion: "Acá escribí la descripción completa del juego: la historia, el objetivo y qué lo hace divertido.",
+    genero: "Arcade",
+    controles: "Flechas / Mouse",
+    dificultad: "Fácil",
+    scratchId: "1321720204"
+  },
+  {
+    titulo: "Juego 3",
+    emoji: "🧩",
+    resumen: "Una frase corta que cuente de qué trata.",
+    descripcion: "Acá escribí la descripción completa del juego.",
+    genero: "Puzzle",
+    controles: "Mouse",
+    dificultad: "Media",
+    scratchId: null,
+    enlace: ""   // pegá acá el link si no es de Scratch
+  },
+  {
+    titulo: "Juego 4",
+    emoji: "🏁",
+    resumen: "Una frase corta que cuente de qué trata.",
+    descripcion: "Acá escribí la descripción completa del juego.",
+    genero: "Carreras",
+    controles: "Teclado",
+    dificultad: "Difícil",
+    scratchId: null,
+    enlace: ""
+  }
+];
+
+const grilla = document.getElementById('grilla');
+const modal = document.getElementById('modal');
+const titulo = document.getElementById('modal-titulo');
+const icono = document.getElementById('modal-icono');
+const cuerpo = document.getElementById('modal-cuerpo');
+
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
+
+juegos.forEach((j, i) => {
+  const b = document.createElement('button');
+  b.className = 'tarjeta';
+  b.innerHTML = `
+    <span class="emoji" aria-hidden="true">${j.svg || j.emoji}</span>
+    <h2>${esc(j.titulo)}</h2>
+    <p class="resumen">${esc(j.resumen)}</p>
+    <span class="ver">Ver información</span>`;
+  b.addEventListener('click', () => abrir(i));
+  grilla.appendChild(b);
+});
+
+function abrir(i){
+  const j = juegos[i];
+  titulo.textContent = j.titulo;
+  icono.innerHTML = j.svg || j.emoji;
+
+  let juego;
+  if (j.scratchId){
+    juego = `<iframe class="visor" src="https://scratch.mit.edu/projects/${j.scratchId}/embed"
+              allowtransparency="true" allowfullscreen loading="lazy"
+              title="${esc(j.titulo)}"></iframe>
+             <a class="enlace" href="https://scratch.mit.edu/projects/${j.scratchId}/" target="_blank" rel="noopener">Abrir en Scratch</a>`;
+  } else if (j.enlace){
+    juego = `<a class="enlace" href="${esc(j.enlace)}" target="_blank" rel="noopener">Jugar</a>`;
+  } else {
+    juego = `<div class="sin-juego">Todavía no cargaste el link de este juego.</div>`;
+  }
+
+  cuerpo.innerHTML = `
+    <p>${esc(j.descripcion)}</p>
+    <div class="datos">
+      <div class="dato"><b>Género</b><span>${esc(j.genero)}</span></div>
+      <div class="dato"><b>Controles</b><span>${esc(j.controles)}</span></div>
+      <div class="dato"><b>Dificultad</b><span>${esc(j.dificultad)}</span></div>
+    </div>
+    ${juego}`;
+  modal.showModal();
+}
+
+function cerrar(){
+  modal.close();
+  cuerpo.innerHTML = '';   // frena el juego al cerrar
+}
+document.getElementById('cerrar').addEventListener('click', cerrar);
+modal.addEventListener('click', e => { if (e.target === modal) cerrar(); });
+modal.addEventListener('cancel', () => { cuerpo.innerHTML = ''; });
+</script>
+</body>
+</html>
